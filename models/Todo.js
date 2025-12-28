@@ -6,7 +6,7 @@ class Todo {
     description = '',
     status = 'pending',
     deadline = null,
-    userId, // Add this
+    userId, 
     createdAt = new Date().toISOString(),
     updatedAt = new Date().toISOString()
   }) {
@@ -14,7 +14,7 @@ class Todo {
     this.description = description;
     this.status = status;
     this.deadline = deadline;
-    this.userId = userId; // Add this
+    this.userId = userId; 
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     

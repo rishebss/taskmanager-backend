@@ -8,11 +8,40 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Simple CORS - Allow all for now
+// Mobile-Friendly CORS Configuration
+const allowedOrigins = [
+  'https://taskmanager-frontend-woad.vercel.app', // Your web frontend
+  'http://localhost:8081',                        // Expo web development
+  'http://localhost:19006',                       // Expo web alternative port
+  /^http:\/\/localhost:\d+$/,                     // All localhost ports
+  /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/,            // Expo URLs (exp://192.168.1.100:19000)
+  /^http:\/\/\d+\.\d+\.\d+\.\d+:\d+$/,           // IP addresses for mobile testing
+  'http://10.0.2.2:3000',                        // Android emulator to localhost
+  'http://localhost:3000',                       // iOS simulator to localhost
+];
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://taskmanager-frontend-woad.vercel.app');
+  const origin = req.headers.origin;
+  
+  // Check if origin is allowed
+  const isAllowed = allowedOrigins.some(allowed => {
+    if (typeof allowed === 'string') {
+      return origin === allowed;
+    }
+    if (allowed instanceof RegExp) {
+      return allowed.test(origin);
+    }
+    return false;
+  });
+
+  if (origin && isAllowed) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else if (origin) {
+    console.log('CORS blocked origin:', origin);
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Max-Age', '86400');
   
@@ -25,12 +54,25 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    cors: {
+      note: "Mobile-friendly CORS enabled",
+      yourOrigin: req.headers.origin || 'No origin header'
+    }
+  });
+});
+
 // Routes
 app.get("/", (req, res) => {
   res.json({
     message: "✅ Task Manager API is running",
     version: "1.0.0",
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    cors: "Mobile-friendly CORS enabled"
   });
 });
 
@@ -62,5 +104,6 @@ export default app;
 if (process.env.VERCEL !== '1') {
   app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
+    console.log(`🌐 CORS enabled for mobile development`);
   });
 }
