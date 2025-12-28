@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://taskmanager-frontend-woad.vercel.app'
+  'https://taskmanager-frontend-woad.vercel.app/api'
 ];
 
 app.use(cors({
@@ -63,6 +63,5 @@ if (process.env.VERCEL !== '1') {
     console.log(`🚀 Server running on http://localhost:${port}`);
   });
 }
-
 
 
