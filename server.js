@@ -11,8 +11,8 @@ const port = process.env.PORT || 3000;
 // CORS configuration - FIXED
 const allowedOrigins = [
   'http://localhost:5173',  // ✅ Removed /api
-  'https://taskmanager-frontend-woad.vercel.app/api',
-  'taskmanager-frontend-omshz3y47-rishebss-projects.vercel.app/api'
+  'https://taskmanager-frontend-woad.vercel.app',
+  
 ];
 
 app.use(cors({
