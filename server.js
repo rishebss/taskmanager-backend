@@ -8,12 +8,23 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Simple CORS - Allow all origins (you can restrict later)
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://taskmanager-frontend-woad.vercel.app'
+];
+
 app.use(cors({
-  origin: '*', // Allow all origins for now
-  credentials: false, // Set to false when using origin: '*'
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json());
@@ -27,8 +38,8 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/todos", authMiddleware, todoRoutes);
+app.use("/auth", authRoutes);
+app.use("/todos", authMiddleware, todoRoutes);
 
 // 404 handler
 app.use((req, res) => {
