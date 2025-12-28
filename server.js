@@ -11,22 +11,26 @@ const port = process.env.PORT || 3000;
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL // Add your production frontend URL to .env
+  'https://taskmanager-frontend-woad.vercel.app',
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes(origin + '/')) {
+      return callback(null, true);
+    } else {
+      console.log('CORS blocked for origin:', origin);
+      return callback(new Error('Not allowed by CORS'));
     }
-    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 }));
 
 app.use(express.json());
@@ -40,8 +44,9 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/todos", authMiddleware, todoRoutes);
+// Auth and Todo routes - aligned with frontend services/api.js
+app.use("/auth", authRoutes);
+app.use("/todos", authMiddleware, todoRoutes);
 
 // 404 handler
 app.use((req, res) => {
