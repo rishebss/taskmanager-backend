@@ -8,20 +8,26 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Mobile-Friendly CORS Configuration
 const allowedOrigins = [
   'https://taskmanager-frontend-woad.vercel.app', // Your web frontend
   'http://localhost:8081',                        // Expo web development
   'http://localhost:19006',                       // Expo web alternative port
   /^http:\/\/localhost:\d+$/,                     // All localhost ports
-  /^exp:\/\/\d+\.\d+\.\d+\.\d+:\d+$/,            // Expo URLs (exp://192.168.1.100:19000)
-  /^http:\/\/\d+\.\d+\.\d+\.\d+:\d+$/,           // IP addresses for mobile testing
-  'http://10.0.2.2:3000',                        // Android emulator to localhost
-  'http://localhost:3000',                       // iOS simulator to localhost
+  /^exp:\/\/.*$/,                                 // ALL Expo URLs
+  /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,        // Local network IPs (for mobile testing)
+  /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,         // More local IP ranges
+  'http://10.0.2.2:3000',                        // Android emulator
+  'http://localhost:3000',                       // iOS simulator/localhost
 ];
 
+// Mobile app requests often have null or no origin
 app.use((req, res, next) => {
   const origin = req.headers.origin;
+  
+  // Allow requests with no origin (mobile apps, curl, postman)
+  if (!origin) {
+    return next();
+  }
   
   // Check if origin is allowed
   const isAllowed = allowedOrigins.some(allowed => {
@@ -34,9 +40,9 @@ app.use((req, res, next) => {
     return false;
   });
 
-  if (origin && isAllowed) {
+  if (isAllowed) {
     res.header('Access-Control-Allow-Origin', origin);
-  } else if (origin) {
+  } else {
     console.log('CORS blocked origin:', origin);
   }
 
