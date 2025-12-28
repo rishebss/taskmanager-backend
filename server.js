@@ -11,7 +11,8 @@ const port = process.env.PORT || 3000;
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL // Add your production frontend URL to .env
+  'https://taskmanager-frontend-woad.vercel.app'
+// Add your production frontend URL to .env
 ].filter(Boolean);
 
 app.use(cors({
