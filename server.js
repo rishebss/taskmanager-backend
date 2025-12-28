@@ -8,20 +8,20 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration - FIXED
-const allowedOrigins = [
-  'http://localhost:5173',  // ✅ Removed /api
-  'https://taskmanager-frontend-woad.vercel.app',
+// Simple CORS - Allow all for now
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://taskmanager-frontend-woad.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400');
   
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  optionsSuccessStatus: 200
-}));
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send();
+  }
+  next();
+});
 
 app.use(express.json());
 
@@ -34,7 +34,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// ✅ FIXED - Changed to /api/auth and /api/todos
 app.use("/api/auth", authRoutes);
 app.use("/api/todos", authMiddleware, todoRoutes);
 
