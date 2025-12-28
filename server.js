@@ -17,7 +17,9 @@ const allowedOrigins = [
   /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,        // Local network IPs (for mobile testing)
   /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,         // More local IP ranges
   'http://10.0.2.2:3000',                        // Android emulator
-  'http://localhost:3000',                       // iOS simulator/localhost
+  'http://localhost:3000',  
+   null,                                          // ← ADD THIS to allow mobile apps
+   undefined,                      // iOS simulator/localhost
 ];
 
 // Mobile app requests often have null or no origin
