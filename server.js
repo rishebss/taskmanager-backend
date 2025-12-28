@@ -1,9 +1,9 @@
 import "dotenv/config";
 import express from "express";
 import todoRoutes from "./routes/todoRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; // Add this
+import authRoutes from "./routes/authRoutes.js";
 import cors from "cors";
-import { authMiddleware } from "./middlewares/authMiddleware.js"; // Add this
+import { authMiddleware } from "./middlewares/authMiddleware.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,10 +11,13 @@ const port = process.env.PORT || 3000;
 // CORS configuration - Add your frontend URL
 const allowedOrigins = [
   'http://localhost:5173', // Example frontend
+  'http://localhost:3000',
+  'https://your-react-app.vercel.app' // Add your deployed frontend
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
@@ -30,12 +33,23 @@ app.use(cors({
 
 app.use(express.json());
 
+// Health check endpoint (VERY IMPORTANT for Vercel)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
 // Routes
 app.get("/", (req, res) => {
   res.json({
-    message: "✅ Nesa Todo API is running",
+    message: "✅ Task Manager API is running",
     version: "1.0.0",
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV || "development",
+    docs: "/api-docs",
+    health: "/health"
   });
 });
 
@@ -49,7 +63,8 @@ app.use("/api/todos", authMiddleware, todoRoutes);
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    error: "Endpoint not found"
+    error: "Endpoint not found",
+    path: req.path
   });
 });
 
@@ -59,16 +74,23 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     error: "Internal server error",
-    message: process.env.NODE_ENV === 'production' ? undefined : err.message
+    message: process.env.NODE_ENV === 'production' ? undefined : err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
-// Export for Vercel
+// **CRITICAL FIX: Remove the conditional app.listen()**
+// Vercel expects a serverless function export, not a running server
+
+// For Vercel deployment, export the app directly
 export default app;
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(port, () => {
-    console.log(`🚀 Server running on http://localhost:${port}`);
-  });
-}
+// **Remove this entire block below - Vercel handles the server start**
+// /*
+// // For local development
+// if (process.env.NODE_ENV !== 'production') {
+//   app.listen(port, () => {
+//     console.log(`🚀 Server running on http://localhost:${port}`);
+//   });
+// }
+// */
