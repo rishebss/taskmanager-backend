@@ -8,27 +8,34 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration
+// CORS configuration - More permissive
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://taskmanager-frontend-woad.vercel.app'
-// Add your production frontend URL to .env
+  'http://localhost:3000',
+  'https://taskmanager-frontend-woad.vercel.app',
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Temporarily allow all for debugging
     }
-    return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-JSON'],
+  maxAge: 86400 // 24 hours
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 
@@ -71,3 +78,15 @@ if (process.env.VERCEL !== '1') {
     console.log(`🚀 Server running on http://localhost:${port}`);
   });
 }
+```
+
+## Fix 3: Check your frontend API URL
+
+Also make sure your **frontend** is calling the correct backend URL. Your error shows:
+```
+'https://taskmanager-backend-one.vercel.app/auth/login'
+```
+
+But it should be:
+```
+'https://taskmanager-backend-one.vercel.app/api/auth/login'
