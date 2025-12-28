@@ -8,10 +8,10 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration
+// CORS configuration - FIXED
 const allowedOrigins = [
-  'http://localhost:5173',
-  'https://taskmanager-frontend-woad.vercel.app/api'
+  'http://localhost:5173',  // ✅ Removed /api
+  'https://taskmanager-frontend-woad.vercel.app'
 ];
 
 app.use(cors({
@@ -33,8 +33,9 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/auth", authRoutes);
-app.use("/todos", authMiddleware, todoRoutes);
+// ✅ FIXED - Changed to /api/auth and /api/todos
+app.use("/api/auth", authRoutes);
+app.use("/api/todos", authMiddleware, todoRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -63,5 +64,3 @@ if (process.env.VERCEL !== '1') {
     console.log(`🚀 Server running on http://localhost:${port}`);
   });
 }
-
-
